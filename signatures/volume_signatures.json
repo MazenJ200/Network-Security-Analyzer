@@ -1,0 +1,24 @@
+[
+  {
+    "signature_id": "VOL-001",
+    "name": "High Bandwidth Flood",
+    "attack_category": "volume",
+    "monitored_attribute": "bps",
+    "threshold": 50000000,
+    "time_window_sec": 5,
+    "severity": "high",
+    "scope": "global",
+    "description": "Total HTTPS traffic averages more than 50 Mbps over 5 seconds, from all sources combined."
+  },
+  {
+    "signature_id": "VOL-002",
+    "name": "Single-Source Bandwidth Hog",
+    "attack_category": "volume",
+    "monitored_attribute": "bps",
+    "threshold": 20000000,
+    "time_window_sec": 5,
+    "severity": "medium",
+    "scope": "per_source",
+    "description": "One source IP averages more than 20 Mbps of HTTPS traffic over 5 seconds."
+  }
+]

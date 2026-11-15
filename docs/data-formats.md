@@ -15,11 +15,14 @@ Signature files store the detection rules the analysis engine evaluates against 
 | `signature_id` | string | Yes | Unique identifier (e.g., `"VOL-001"`) |
 | `name` | string | Yes | Human-readable name of the signature |
 | `attack_category` | string | Yes | One of: `volume`, `protocol`, `application` |
-| `monitored_attribute` | string | Yes | Attribute evaluated (e.g., `rps`, `pps`, `bps`, `tls_handshake_rate`) |
-| `threshold` | number | Yes | Value that triggers detection when exceeded |
-| `time_window_sec` | integer | Yes | Rolling time window in seconds over which the attribute is measured |
+| `monitored_attribute` | string | Yes | One of: `bps`, `pps`, `rps`, `syn_rate`, `tls_handshake_rate` |
+| `threshold` | number | Yes | Per-second rate that triggers detection when exceeded (must be above 0) |
+| `time_window_sec` | integer | Yes | Rolling time window in seconds; the rate is averaged over this window |
 | `severity` | string | Yes | One of: `low`, `medium`, `high`, `critical` |
+| `scope` | string | No | `per_source` (default): each source IP is measured on its own. `global`: all traffic is measured together, which catches distributed attacks spread over many IPs |
 | `description` | string | No | Plain-language explanation of the pattern |
+
+A rule fires when the monitored attribute, averaged over the last `time_window_sec` seconds, goes above `threshold`. Signature IDs must be unique across all files.
 
 ### Example
 
@@ -32,7 +35,8 @@ Signature files store the detection rules the analysis engine evaluates against 
   "threshold": 200,
   "time_window_sec": 5,
   "severity": "high",
-  "description": "Triggers when a single source IP exceeds 200 HTTPS requests within a 5-second window, indicating an HTTP flood attack."
+  "scope": "per_source",
+  "description": "One source IP sends more than 200 HTTPS requests per second, averaged over 5 seconds, indicating an HTTP flood."
 }
 ```
 

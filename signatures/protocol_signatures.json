@@ -1,0 +1,35 @@
+[
+  {
+    "signature_id": "PRO-001",
+    "name": "SYN Flood",
+    "attack_category": "protocol",
+    "monitored_attribute": "syn_rate",
+    "threshold": 100,
+    "time_window_sec": 5,
+    "severity": "critical",
+    "scope": "per_source",
+    "description": "One source IP sends more than 100 TCP SYN packets per second (averaged over 5 seconds) to port 443."
+  },
+  {
+    "signature_id": "PRO-002",
+    "name": "Distributed SYN Flood",
+    "attack_category": "protocol",
+    "monitored_attribute": "syn_rate",
+    "threshold": 300,
+    "time_window_sec": 5,
+    "severity": "critical",
+    "scope": "global",
+    "description": "All sources together send more than 300 TCP SYN packets per second (averaged over 5 seconds) to port 443."
+  },
+  {
+    "signature_id": "PRO-003",
+    "name": "Packet Rate Flood",
+    "attack_category": "protocol",
+    "monitored_attribute": "pps",
+    "threshold": 1000,
+    "time_window_sec": 5,
+    "severity": "high",
+    "scope": "per_source",
+    "description": "One source IP sends more than 1000 packets per second (averaged over 5 seconds) to port 443."
+  }
+]

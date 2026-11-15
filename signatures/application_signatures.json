@@ -1,0 +1,24 @@
+[
+  {
+    "signature_id": "APP-001",
+    "name": "TLS Handshake Flood",
+    "attack_category": "application",
+    "monitored_attribute": "tls_handshake_rate",
+    "threshold": 50,
+    "time_window_sec": 5,
+    "severity": "high",
+    "scope": "per_source",
+    "description": "One source IP starts more than 50 TLS handshakes (Client Hello) per second, averaged over 5 seconds."
+  },
+  {
+    "signature_id": "APP-002",
+    "name": "HTTPS Request Rate Flood",
+    "attack_category": "application",
+    "monitored_attribute": "rps",
+    "threshold": 200,
+    "time_window_sec": 5,
+    "severity": "high",
+    "scope": "per_source",
+    "description": "One source IP sends more than 200 HTTPS requests per second, averaged over 5 seconds, indicating an HTTP flood."
+  }
+]

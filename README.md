@@ -83,9 +83,36 @@ See [docs/architecture.md](docs/architecture.md) for the full description.
 | [docs/data-formats.md](docs/data-formats.md) | JSON signature and log file schemas with examples |
 | [docs/design.md](docs/design.md) | UML design diagrams (use case, class, sequence, activity, deployment, state) |
 
+## Setup
+
+Requires Python 3.11+ and Wireshark (which includes Tshark and Npcap on Windows).
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows (on Linux: source .venv/bin/activate)
+pip install -r requirements.txt
+```
+
+Check the detection rules and run the tests:
+
+```bash
+python -m analyzer.signatures
+python -m pytest -q
+```
+
 ## Project Status
 
-Documentation and design phase. Implementation is in progress.
+Implementation in progress.
+
+| Step | Part | Status |
+|------|------|--------|
+| 1 | Signature store and loader (`signatures/`, `analyzer/signatures.py`) | Done |
+| 2 | Packet capture and parsing (Tshark) | Next |
+| 3 | Metric aggregation (Bps / Pps / Rps) | Planned |
+| 4 | Detection engine, alerts and JSON logs | Planned |
+| 5 | Monitoring session (main program) | Planned |
+| 6 | Streamlit dashboard | Planned |
+| 7 | Attack simulation and testing | Planned |
 
 ## Team
 
