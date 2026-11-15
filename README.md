@@ -82,6 +82,7 @@ See [docs/architecture.md](docs/architecture.md) for the full description.
 | [docs/architecture.md](docs/architecture.md) | System architecture and component layers |
 | [docs/data-formats.md](docs/data-formats.md) | JSON signature and log file schemas with examples |
 | [docs/design.md](docs/design.md) | UML design diagrams (use case, class, sequence, activity, deployment, state) |
+| [docs/implementation-notes.md](docs/implementation-notes.md) | Decisions made while building, and known limits |
 
 ## Setup
 
@@ -100,6 +101,16 @@ python -m analyzer.signatures
 python -m pytest -q
 ```
 
+Watch the packets the analyzer sees (live, or from the included sample file):
+
+```bash
+python -m analyzer.capture --list-interfaces
+python -m analyzer.capture -i Wi-Fi -c 20
+python -m analyzer.capture -r tests/data/sample_https.pcapng
+```
+
+Live capture may need an administrator terminal, depending on how Npcap was installed.
+
 ## Project Status
 
 Implementation in progress.
@@ -107,8 +118,8 @@ Implementation in progress.
 | Step | Part | Status |
 |------|------|--------|
 | 1 | Signature store and loader (`signatures/`, `analyzer/signatures.py`) | Done |
-| 2 | Packet capture and parsing (Tshark) | Next |
-| 3 | Metric aggregation (Bps / Pps / Rps) | Planned |
+| 2 | Packet capture and parsing (`analyzer/capture.py`) | Done |
+| 3 | Metric aggregation (Bps / Pps / Rps) | Next |
 | 4 | Detection engine, alerts and JSON logs | Planned |
 | 5 | Monitoring session (main program) | Planned |
 | 6 | Streamlit dashboard | Planned |

@@ -71,6 +71,7 @@ classDiagram
     }
 
     class PacketRecord {
+        +float time
         +String src_ip
         +String dst_ip
         +int src_port
@@ -79,7 +80,9 @@ classDiagram
         +String timestamp
         +String protocol
         +String tcp_flags
+        +bool is_syn
         +bool tls_handshake
+        +bool is_request
         +String sni
     }
 
