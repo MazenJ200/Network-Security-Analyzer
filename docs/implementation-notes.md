@@ -52,3 +52,16 @@ Decisions made while building the system, with the reason for each. These feed C
 - **Signature reload while running.** Every 2 seconds the session checks whether any signature file changed. A valid change is loaded at once; a broken one prints a warning and the old rules stay active, so editing rules never stops monitoring.
 - **Clean stop.** Ctrl+C or the end of `-d` stops Tshark, writes the last metrics line and prints a summary: run time, packets seen, and alerts per rule.
 - **End-to-end check on real packets** (local HTTPS test server, loopback adapter, unchanged repository rules): one client opening 169 TLS connections per second, each with one GET, raised APP-001 (TLS handshake flood), PRO-003 (packet rate) and PRO-001 (SYN flood), each exactly once. The request estimate read 171.2 requests/s against 171.2 handshakes/s, which matches one request per connection. 23,264 packets, clean stop, no Tshark process left behind.
+
+## 6.6 Dashboard
+
+- **Separate process, reads files.** `streamlit run dashboard.py` reads the session files in `logs/`; it never talks to the running analyzer. The analyzer keeps working if the dashboard is closed, and old sessions can be reviewed after they end.
+- **Data helpers are plain functions** (`analyzer/dashboard_data.py`): list sessions, load metrics, load alerts, filter alerts, live or not. They are tested on their own; the page (`dashboard.py`) only lays them out.
+- **Auto-refresh** redraws the main area every 2 seconds (`st.fragment(run_every=2)`); the sidebar filters keep their values.
+- **Live or ended.** A session counts as live if its metrics file changed in the last 10 seconds. A live session that has been quiet for a whole window shows zero; an ended session shows its last values.
+- **Quiet seconds show as zero on the charts.** The analyzer only writes a metrics line for seconds that had traffic, so gaps are filled with zero.
+- **Bug found while testing live (fixed in the session code):** metrics lines first stored the last packet time rounded to milliseconds, so a packet at x.9996 s was stored as the next second, two lines collided and a second went missing, which drew false drops to zero in the middle of a flood. Each line now stores the whole second it covers.
+- **Charts are drawn with Altair, not `st.line_chart`.** Streamlit's built-in charts zoom when the mouse wheel is over them, which stopped the page from scrolling during testing.
+- **Metric cards are two rows of three** with the unit in the label, so values are not cut off on small screens.
+- **The rule filter lists every rule from the signature files**, not just rules that already fired, so an analyst can filter before an attack happens.
+- **Checked in a browser during a live loopback flood** (two floods 17 s apart): rates and charts updated every 2 s, the three alerts appeared as they were raised, the second flood raised no new alerts because it fell inside the 30 s cooldown, and the severity, rule and search filters narrowed the alert table as expected.

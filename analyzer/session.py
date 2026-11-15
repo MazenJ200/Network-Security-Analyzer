@@ -82,7 +82,7 @@ class MonitoringSession:
         for packet in self.capture.get_stream():
             second = int(packet.time)
             if last_second is not None and second > last_second:
-                self._write_metrics()
+                self._write_metrics(last_second)
                 if self.stats_every and second // self.stats_every > last_second // self.stats_every:
                     self._print_stats()
             last_second = max(second, last_second or second)
@@ -94,7 +94,7 @@ class MonitoringSession:
             if time.monotonic() >= self._next_reload_check:
                 self.reload_signatures_if_changed()
         if last_second is not None:
-            self._write_metrics()
+            self._write_metrics(last_second)
 
     def _mtimes(self):
         return {p.name: p.stat().st_mtime for p in self.loader.signatures_path.glob("*_signatures.json")}
@@ -114,8 +114,10 @@ class MonitoringSession:
         self.output(f"[INFO] Reloaded {len(signatures)} signatures")
         return True
 
-    def _write_metrics(self):
+    def _write_metrics(self, second):
+        # Store the whole second the line covers; a rounded packet time could land on the next second.
         line = {key: round(value, 3) for key, value in asdict(self.metrics.get_snapshot()).items()}
+        line["time"] = second
         line["top_sources"] = [[ip, round(pps, 2)] for ip, pps in self.metrics.top_sources(5)]
         with self.metrics_log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(line) + "\n")

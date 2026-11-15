@@ -110,11 +110,11 @@ Log files use **JSON Lines**: one complete JSON object per line. Appending a lin
 
 ## Metrics Files
 
-The dashboard runs as a separate process and cannot read the engine's memory, so each session also writes its traffic rates to a metrics file: one JSON line per second of traffic, appended when the next second begins. Seconds with no traffic on the protected port write no line; a reader should treat a gap as zero traffic.
+The dashboard runs as a separate process and cannot read the engine's memory, so each session also writes its traffic rates to a metrics file: one JSON line per second of traffic, appended when the next second begins. Seconds with no traffic on the protected port write no line; the dashboard shows a gap as zero. That is an instant view: the detection engine itself always uses the full rolling average.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `time` | number | Packet time of the snapshot (seconds since 1970, UTC) |
+| `time` | integer | The whole second the line covers (seconds since 1970, UTC); rates are as of the end of that second |
 | `bps`, `pps`, `rps` | number | Overall bits, packets and estimated requests per second, averaged over the metrics window |
 | `syn_rate`, `tls_handshake_rate` | number | Overall SYN packets and TLS handshakes per second |
 | `top_sources` | array | Up to 5 `[source_ip, packets_per_second]` pairs, busiest first |
@@ -122,7 +122,7 @@ The dashboard runs as a separate process and cannot read the engine's memory, so
 ### Example
 
 ```json
-{"time": 1794763801.391, "bps": 1181030.4, "pps": 1425.6, "rps": 118.8, "syn_rate": 119.0, "tls_handshake_rate": 119.0, "top_sources": [["127.0.0.1", 1425.6]]}
+{"time": 1794763801, "bps": 1181030.4, "pps": 1425.6, "rps": 118.8, "syn_rate": 119.0, "tls_handshake_rate": 119.0, "top_sources": [["127.0.0.1", 1425.6]]}
 ```
 
 ---

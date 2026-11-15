@@ -100,3 +100,11 @@ def test_signature_reload(tmp_path):
     assert session.reload_signatures_if_changed() is False
     assert "keeping the old rules" in printed[-1]
     assert "TST-001" in {s.signature_id for s in session.engine.signatures}
+
+
+@needs_tshark
+def test_metrics_lines_cover_whole_seconds(tmp_path):
+    session, _ = run_on_sample(tmp_path, REPO_SIGNATURES)
+    times = [json.loads(line)["time"] for line in session.metrics_log.read_text().splitlines()]
+    assert all(isinstance(t, int) for t in times)
+    assert times == sorted(set(times))

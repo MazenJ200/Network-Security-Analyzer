@@ -107,6 +107,14 @@ python -m analyzer -r capture.pcapng       # analyze a saved capture
 
 Each run creates a session in `logs/`: `session_<date>_<number>.jsonl` (alerts) and `session_<date>_<number>_metrics.jsonl` (traffic rates per second). Edit the files in `signatures/` while it runs and the changes are loaded within 2 seconds. Run `python -m analyzer -h` for all options.
 
+Open the dashboard in a second terminal (it reads `logs/` and refreshes every 2 seconds):
+
+```bash
+streamlit run dashboard.py
+```
+
+It opens at http://localhost:8501 and shows live bandwidth, packet, request, SYN and handshake rates, the top source IPs, and the alert feed with severity, rule and text filters. Pick an earlier session from the sidebar to review it.
+
 ## Checking each part
 
 Check the detection rules and run the tests:
@@ -146,8 +154,8 @@ Numbers match the report sections.
 | 6.3 | Traffic metrics (`analyzer/metrics.py`) | Done |
 | 6.4 | Detection engine, alerts and JSON logs (`analyzer/detection.py`, `analyzer/alerts.py`) | Done |
 | 6.5 | Monitoring session and main program (`analyzer/session.py`, `python -m analyzer`) | Done |
-| 6.6 | Streamlit dashboard | Next |
-| 7 | Attack simulation and testing | Planned |
+| 6.6 | Streamlit dashboard (`dashboard.py`, `analyzer/dashboard_data.py`) | Done |
+| 7 | Attack simulation and testing | Next |
 
 ## Team
 
