@@ -42,3 +42,13 @@ Decisions made while building the system, with the reason for each. These feed C
 - **JSON Lines log.** One JSON object per line, opened, appended and closed for each alert. Alerts are rare (cooldown), so this costs nothing and nothing is lost if the program stops. `Logger.query()` filters by any field for the dashboard and skips a half-written last line.
 - **Signature windows are checked at start.** A rule whose window is longer than the metrics keep is rejected with its ID, instead of silently reading too few seconds.
 - **Measured on a simulated attack** (synthetic packets through the real rules): a 300 SYN/s flood from one IP raised PRO-001 after about 1.7 s (when the 5-second average passed 100/s); a 2000 SYN/s flood from 400 IPs raised only PRO-002 (global). 13,800 packets raised exactly 2 alerts. Metrics plus detection ran at about 100,000 packets per second on the development laptop, so Tshark, not Python, sets the speed limit.
+
+## 6.5 Monitoring session
+
+- **One command runs everything:** `python -m analyzer -i <interface>`. `MonitoringSession` follows the activity diagram: load signatures, create the session and its files, start Tshark, then for each packet update metrics and evaluate rules, until Ctrl+C or the `-d` time ends.
+- **Rules are loaded before anything is created.** A broken signature file stops the program with a clear message and leaves no empty log files behind.
+- **The metrics window follows the rules.** It is set to the longest `time_window_sec` among the loaded signatures.
+- **Session files.** Each session gets an ID (`session-<date>-<number>`) and two files in `logs/`: the alert log and a metrics file with one line of rates per second of traffic. The dashboard is a separate process, so it reads these files instead of the engine's memory.
+- **Signature reload while running.** Every 2 seconds the session checks whether any signature file changed. A valid change is loaded at once; a broken one prints a warning and the old rules stay active, so editing rules never stops monitoring.
+- **Clean stop.** Ctrl+C or the end of `-d` stops Tshark, writes the last metrics line and prints a summary: run time, packets seen, and alerts per rule.
+- **End-to-end check on real packets** (local HTTPS test server, loopback adapter, unchanged repository rules): one client opening 169 TLS connections per second, each with one GET, raised APP-001 (TLS handshake flood), PRO-003 (packet rate) and PRO-001 (SYN flood), each exactly once. The request estimate read 171.2 requests/s against 171.2 handshakes/s, which matches one request per connection. 23,264 packets, clean stop, no Tshark process left behind.

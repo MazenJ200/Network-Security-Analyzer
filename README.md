@@ -94,6 +94,21 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Running
+
+Start monitoring (find the interface name with `--list-interfaces`, stop with Ctrl+C):
+
+```bash
+python -m analyzer --list-interfaces
+python -m analyzer -i Wi-Fi
+python -m analyzer -i Wi-Fi -d 60          # stop after 60 seconds
+python -m analyzer -r capture.pcapng       # analyze a saved capture
+```
+
+Each run creates a session in `logs/`: `session_<date>_<number>.jsonl` (alerts) and `session_<date>_<number>_metrics.jsonl` (traffic rates per second). Edit the files in `signatures/` while it runs and the changes are loaded within 2 seconds. Run `python -m analyzer -h` for all options.
+
+## Checking each part
+
 Check the detection rules and run the tests:
 
 ```bash
@@ -130,8 +145,8 @@ Numbers match the report sections.
 | 6.2 | Packet capture and parsing (`analyzer/capture.py`) | Done |
 | 6.3 | Traffic metrics (`analyzer/metrics.py`) | Done |
 | 6.4 | Detection engine, alerts and JSON logs (`analyzer/detection.py`, `analyzer/alerts.py`) | Done |
-| 6.5 | Monitoring session (main program) | Next |
-| 6.6 | Streamlit dashboard | Planned |
+| 6.5 | Monitoring session and main program (`analyzer/session.py`, `python -m analyzer`) | Done |
+| 6.6 | Streamlit dashboard | Next |
 | 7 | Attack simulation and testing | Planned |
 
 ## Team

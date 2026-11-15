@@ -108,6 +108,25 @@ Log files use **JSON Lines**: one complete JSON object per line. Appending a lin
 
 ---
 
+## Metrics Files
+
+The dashboard runs as a separate process and cannot read the engine's memory, so each session also writes its traffic rates to a metrics file: one JSON line per second of traffic, appended when the next second begins. Seconds with no traffic on the protected port write no line; a reader should treat a gap as zero traffic.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `time` | number | Packet time of the snapshot (seconds since 1970, UTC) |
+| `bps`, `pps`, `rps` | number | Overall bits, packets and estimated requests per second, averaged over the metrics window |
+| `syn_rate`, `tls_handshake_rate` | number | Overall SYN packets and TLS handshakes per second |
+| `top_sources` | array | Up to 5 `[source_ip, packets_per_second]` pairs, busiest first |
+
+### Example
+
+```json
+{"time": 1794763801.391, "bps": 1181030.4, "pps": 1425.6, "rps": 118.8, "syn_rate": 119.0, "tls_handshake_rate": 119.0, "top_sources": [["127.0.0.1", 1425.6]]}
+```
+
+---
+
 ## Relationship
 
 ```mermaid
@@ -145,3 +164,6 @@ erDiagram
 |-----------|-------------------|----------|-------------|
 | Signature file | `<category>_signatures.json` (e.g., `volume_signatures.json`) | `/signatures/` | Read-only at runtime |
 | Log file | `session_<date>_<id>.jsonl` (e.g., `session_2026-05-23_001.jsonl`) | `/logs/` | Append-only at runtime |
+| Metrics file | `session_<date>_<id>_metrics.jsonl` | `/logs/` | Append-only at runtime |
+
+Session IDs follow the same pattern (`session-2026-05-23-001`). The number counts up from the highest existing session of that day, so restarting never overwrites an earlier session.

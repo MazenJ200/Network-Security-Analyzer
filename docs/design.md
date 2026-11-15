@@ -214,7 +214,7 @@ graph TD
             end
             subgraph Storage["Local Storage"]
                 F1[("signatures/*.json")]
-                F2[("logs/session_*.json")]
+                F2[("logs/session_*.jsonl")]
             end
         end
 
