@@ -109,20 +109,29 @@ python -m analyzer.capture -i Wi-Fi -c 20
 python -m analyzer.capture -r tests/data/sample_https.pcapng
 ```
 
+Watch live traffic rates, printed once per second (`-d 30` stops after 30 seconds):
+
+```bash
+python -m analyzer.metrics -i Wi-Fi -d 30
+python -m analyzer.metrics -r tests/data/sample_https.pcapng
+```
+
 Live capture may need an administrator terminal, depending on how Npcap was installed.
 
 ## Project Status
 
 Implementation in progress.
 
-| Step | Part | Status |
-|------|------|--------|
-| 1 | Signature store and loader (`signatures/`, `analyzer/signatures.py`) | Done |
-| 2 | Packet capture and parsing (`analyzer/capture.py`) | Done |
-| 3 | Metric aggregation (Bps / Pps / Rps) | Next |
-| 4 | Detection engine, alerts and JSON logs | Planned |
-| 5 | Monitoring session (main program) | Planned |
-| 6 | Streamlit dashboard | Planned |
+Numbers match the report sections.
+
+| Section | Part | Status |
+|---------|------|--------|
+| 6.1 | Signature store and loader (`signatures/`, `analyzer/signatures.py`) | Done |
+| 6.2 | Packet capture and parsing (`analyzer/capture.py`) | Done |
+| 6.3 | Traffic metrics (`analyzer/metrics.py`) | Done |
+| 6.4 | Detection engine, alerts and JSON logs | Next |
+| 6.5 | Monitoring session (main program) | Planned |
+| 6.6 | Streamlit dashboard | Planned |
 | 7 | Attack simulation and testing | Planned |
 
 ## Team

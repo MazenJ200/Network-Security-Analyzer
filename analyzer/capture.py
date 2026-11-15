@@ -1,6 +1,7 @@
 """Run Tshark and turn each HTTPS packet into a PacketRecord (metadata only, no decryption)."""
 
 import argparse
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -135,12 +136,13 @@ def list_interfaces():
 
 
 class PacketCapture:
-    def __init__(self, interface_name=None, pcap_file=None, server_port=443):
+    def __init__(self, interface_name=None, pcap_file=None, server_port=443, duration=None):
         if (interface_name is None) == (pcap_file is None):
             raise ValueError("give exactly one of interface_name or pcap_file")
         self.interface_name = interface_name
         self.pcap_file = pcap_file
         self.server_port = server_port
+        self.duration = duration
         self.bpf_filter = f"tcp port {server_port}"
         self.parser = TrafficParser(server_port)
         self._process = None
@@ -152,11 +154,18 @@ class PacketCapture:
             cmd += ["-r", str(self.pcap_file), "-Y", f"tcp.port == {self.server_port}"]
         else:
             cmd += ["-i", self.interface_name, "-f", self.bpf_filter]
+            if self.duration:
+                cmd += ["-a", f"duration:{self.duration}"]
         for field in FIELDS:
             cmd += ["-e", field]
         return cmd
 
     def start(self):
+        # Own process group, so Ctrl+C reaches only Python, which then stops Tshark itself.
+        if os.name == "nt":
+            group = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+        else:
+            group = {"start_new_session": True}
         self._process = subprocess.Popen(
             self._command(),
             stdout=subprocess.PIPE,
@@ -164,6 +173,7 @@ class PacketCapture:
             text=True,
             encoding="utf-8",
             errors="replace",
+            **group,
         )
 
     def get_stream(self):
@@ -196,6 +206,7 @@ def main():
     ap.add_argument("-r", "--read", help="read a saved .pcap/.pcapng file instead of capturing live")
     ap.add_argument("-c", "--count", type=int, default=0, help="stop after this many packets")
     ap.add_argument("-p", "--port", type=int, default=443, help="server port to watch (default 443)")
+    ap.add_argument("-d", "--duration", type=int, help="stop a live capture after this many seconds")
     ap.add_argument("--list-interfaces", action="store_true")
     args = ap.parse_args()
 
@@ -205,7 +216,7 @@ def main():
     if not args.interface and not args.read:
         ap.error("give -i INTERFACE or -r FILE")
 
-    capture = PacketCapture(interface_name=args.interface, pcap_file=args.read, server_port=args.port)
+    capture = PacketCapture(args.interface, args.read, args.port, args.duration)
     seen = 0
     try:
         for record in capture.get_stream():

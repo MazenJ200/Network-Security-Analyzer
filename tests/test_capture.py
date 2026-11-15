@@ -96,6 +96,14 @@ def test_needs_exactly_one_source():
         PacketCapture(interface_name="Wi-Fi", pcap_file="x.pcapng")
 
 
+def test_live_command_uses_capture_filter_and_duration(monkeypatch):
+    monkeypatch.setattr("analyzer.capture.find_tshark", lambda: "tshark")
+    cmd = PacketCapture(interface_name="Wi-Fi", duration=10)._command()
+    assert cmd[cmd.index("-f") + 1] == "tcp port 443"
+    assert cmd[cmd.index("-a") + 1] == "duration:10"
+    assert "-a" not in PacketCapture(interface_name="Wi-Fi")._command()
+
+
 def tshark_installed():
     try:
         find_tshark()
