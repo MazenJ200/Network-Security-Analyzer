@@ -129,8 +129,8 @@ Numbers match the report sections.
 | 6.1 | Signature store and loader (`signatures/`, `analyzer/signatures.py`) | Done |
 | 6.2 | Packet capture and parsing (`analyzer/capture.py`) | Done |
 | 6.3 | Traffic metrics (`analyzer/metrics.py`) | Done |
-| 6.4 | Detection engine, alerts and JSON logs | Next |
-| 6.5 | Monitoring session (main program) | Planned |
+| 6.4 | Detection engine, alerts and JSON logs (`analyzer/detection.py`, `analyzer/alerts.py`) | Done |
+| 6.5 | Monitoring session (main program) | Next |
 | 6.6 | Streamlit dashboard | Planned |
 | 7 | Attack simulation and testing | Planned |
 

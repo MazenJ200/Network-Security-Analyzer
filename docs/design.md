@@ -131,6 +131,9 @@ classDiagram
         +String src_ip
         +String triggered_signature_id
         +String severity
+        +String scope
+        +float observed_value
+        +float threshold
         +float metric_bps
         +float metric_pps
         +float metric_rps

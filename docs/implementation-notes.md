@@ -31,3 +31,14 @@ Decisions made while building the system, with the reason for each. These feed C
 - **Memory stays bounded.** Buckets older than the window are dropped once per second, and a source IP with nothing left in the window is forgotten. This matters during attacks from many spoofed IPs.
 - **The current second is still filling**, so a rate reads slightly low for part of each second. This errs on the side of fewer false alarms.
 - **Clean stop.** Tshark runs in its own process group, so Ctrl+C reaches only Python, which then stops Tshark. Without this, Tshark could exit first and look like a crash. A `-d SECONDS` option uses Tshark's own auto-stop for timed demos.
+
+## 6.4 Detection engine, alerts and logs
+
+- **How a rule is checked.** After each packet updates the metrics, every signature reads one rate: for the packet's source IP (`per_source`) or for all traffic (`global`), over the signature's own window. If the rate is above the threshold, the rule matches.
+- **No alert storms.** During an attack every packet breaks the rule. A rule alerts once when it starts matching, then at most once every 30 seconds (packet time) while it keeps matching. For `per_source` rules this is tracked per source IP, so two attackers give two alerts.
+- **Global alerts name the busiest source** in `src_ip`, so the analyst has a starting point even when the attack is spread out.
+- **Alerts explain themselves.** Each alert stores the measured rate, the threshold, the attribute and the scope, so it can be checked by hand against the rule that fired.
+- **One place for output.** `AlertGenerator.generate()` builds the alert, appends it to the log and prints it, matching the sequence diagram.
+- **JSON Lines log.** One JSON object per line, opened, appended and closed for each alert. Alerts are rare (cooldown), so this costs nothing and nothing is lost if the program stops. `Logger.query()` filters by any field for the dashboard and skips a half-written last line.
+- **Signature windows are checked at start.** A rule whose window is longer than the metrics keep is rejected with its ID, instead of silently reading too few seconds.
+- **Measured on a simulated attack** (synthetic packets through the real rules): a 300 SYN/s flood from one IP raised PRO-001 after about 1.7 s (when the 5-second average passed 100/s); a 2000 SYN/s flood from 400 IPs raised only PRO-002 (global). 13,800 packets raised exactly 2 alerts. Metrics plus detection ran at about 100,000 packets per second on the development laptop, so Tshark, not Python, sets the speed limit.

@@ -46,12 +46,14 @@ A rule fires when the monitored attribute, averaged over the last `time_window_s
 
 Log files are written during live operation. Each generated alert appends an entry to the active session's log file. Log files are append-only at runtime and are queried by the dashboard for historical review.
 
+Log files use **JSON Lines**: one complete JSON object per line. Appending a line never rewrites earlier entries, and if the program stops mid-write only the last line is affected (the reader skips it).
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `log_id` | string | Yes | Unique identifier for the entry (UUID) |
 | `session_id` | string | Yes | Identifier of the monitoring session |
 | `alert_timestamp` | string | Yes | ISO 8601 timestamp of when the alert was generated |
-| `src_ip` | string | Yes | Source IP of the suspicious traffic |
+| `src_ip` | string | Yes | Source IP of the suspicious traffic (for a `global` rule, the busiest source at that moment) |
 | `dst_ip` | string | Yes | Destination IP |
 | `src_port` | integer | Yes | Source port |
 | `dst_port` | integer | Yes | Destination port (typically 443) |
@@ -62,10 +64,15 @@ Log files are written during live operation. Each generated alert appends an ent
 | `sni` | string | No | Server Name Indication from the TLS handshake |
 | `triggered_signature_id` | string | Yes | `signature_id` of the matched rule |
 | `triggered_signature_name` | string | Yes | Human-readable name of the matched signature |
+| `attack_category` | string | Yes | Category of the matched signature (`volume`, `protocol`, `application`) |
 | `severity` | string | Yes | Severity inherited from the matched signature |
-| `metric_bps` | number | Yes | Bits per second at the time of the alert |
-| `metric_pps` | number | Yes | Packets per second at the time of the alert |
-| `metric_rps` | number | Yes | Requests per second at the time of the alert |
+| `scope` | string | Yes | Scope of the matched signature (`per_source` or `global`) |
+| `monitored_attribute` | string | Yes | Attribute the signature measured |
+| `observed_value` | number | Yes | Measured per-second rate that broke the rule |
+| `threshold` | number | Yes | The signature's threshold, so the log explains itself |
+| `metric_bps` | number | Yes | Bits per second at the time of the alert (for the source, or overall for a `global` rule) |
+| `metric_pps` | number | Yes | Packets per second at the time of the alert (same basis) |
+| `metric_rps` | number | Yes | Estimated requests per second at the time of the alert (same basis) |
 | `status` | string | Yes | One of: `new`, `reviewed`, `dismissed` |
 
 ### Example
@@ -86,7 +93,12 @@ Log files are written during live operation. Each generated alert appends an ent
   "sni": "targetsite.local",
   "triggered_signature_id": "APP-002",
   "triggered_signature_name": "HTTPS Request Rate Flood",
+  "attack_category": "application",
   "severity": "high",
+  "scope": "per_source",
+  "monitored_attribute": "rps",
+  "observed_value": 214,
+  "threshold": 200,
   "metric_bps": 18540000,
   "metric_pps": 1620,
   "metric_rps": 214,
@@ -132,4 +144,4 @@ erDiagram
 | File Type | Naming Convention | Location | Access Mode |
 |-----------|-------------------|----------|-------------|
 | Signature file | `<category>_signatures.json` (e.g., `volume_signatures.json`) | `/signatures/` | Read-only at runtime |
-| Log file | `session_<date>_<id>.json` (e.g., `session_2026-05-23_001.json`) | `/logs/` | Append-only at runtime |
+| Log file | `session_<date>_<id>.jsonl` (e.g., `session_2026-05-23_001.jsonl`) | `/logs/` | Append-only at runtime |
