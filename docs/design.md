@@ -182,7 +182,7 @@ graph LR
         PYE["Python<br/>Processing Engine"]
         JSS[("JSON<br/>Signature Files")]
         JSL[("JSON<br/>Log Files")]
-        STR["Streamlit<br/>Dashboard"]
+        STR["Web<br/>Dashboard"]
     end
 
     Terminal["Terminal"]
@@ -210,7 +210,7 @@ graph TD
             subgraph Processes["Running Processes"]
                 P1["Tshark Process<br/>(packet capture)"]
                 P2["Python Engine Process<br/>(detection pipeline)"]
-                P3["Streamlit Server Process<br/>(localhost:8501)"]
+                P3["Dashboard Server Process<br/>(localhost:8501)"]
             end
             subgraph Storage["Local Storage"]
                 F1[("signatures/*.json")]

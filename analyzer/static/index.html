@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Security Analyzer</title>
+<style>
+  :root {
+    --bg: #0e1117; --sidebar: #1b1d26; --panel: #161a22; --line: #2b2f3a;
+    --text: #f1f2f6; --muted: #a3a8b8; --red: #ff4b4b; --live: #21c354;
+    --c1: #83c9ff; --c2: #0f6fd1;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; display: flex; min-height: 100vh; }
+  aside { width: 260px; flex-shrink: 0; background: var(--sidebar); padding: 24px 18px; }
+  main { flex: 1; min-width: 0; padding: 28px 36px 48px; }
+  h1 { font-size: 30px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 10px; }
+  h3 { font-size: 15px; margin: 26px 0 10px; }
+  label { display: block; color: var(--muted); font-size: 13px; margin: 14px 0 6px; }
+  select, input[type=search] { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; font: inherit; }
+  select[multiple] { height: 150px; }
+  input[type=range] { width: 100%; accent-color: var(--red); }
+  .check { display: flex; align-items: center; gap: 8px; color: var(--text); margin: 6px 0; }
+  .check input { accent-color: var(--red); }
+  .caption { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+  .badge { font-weight: 600; }
+  .badge.live { color: var(--live); }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 24px; margin-bottom: 26px; }
+  .card .label { color: var(--muted); font-size: 13px; }
+  .card .value { font-size: 30px; }
+  .card .sub { display: inline-block; font-size: 12px; color: var(--red); background: rgba(255, 75, 75, .15); border-radius: 10px; padding: 1px 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 32px; margin-bottom: 30px; }
+  canvas { width: 100%; height: 240px; display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; background: var(--panel); }
+  td.num { text-align: right; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  .sev-critical { color: var(--red); font-weight: 600; }
+  .empty { color: var(--muted); }
+  #error { background: rgba(255, 75, 75, .15); color: var(--red); padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    aside { width: auto; }
+    main { padding: 20px 16px 40px; }
+    .grid { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<aside>
+  <label for="session">Session</label>
+  <select id="session"></select>
+
+  <label for="minutes">Chart range: <span id="minutesLabel">10</span> minutes</label>
+  <input type="range" id="minutes" min="1" max="60" value="10">
+
+  <label class="check"><input type="checkbox" id="refresh" checked> Auto-refresh every 2 seconds</label>
+
+  <h3>Alert filters</h3>
+  <label>Severity</label>
+  <div id="severities">
+    <label class="check"><input type="checkbox" value="critical"> Critical</label>
+    <label class="check"><input type="checkbox" value="high"> High</label>
+    <label class="check"><input type="checkbox" value="medium"> Medium</label>
+    <label class="check"><input type="checkbox" value="low"> Low</label>
+  </div>
+  <label for="rules">Rule (Ctrl+click for several)</label>
+  <select id="rules" multiple></select>
+  <label for="search">Search IP, site or rule</label>
+  <input type="search" id="search" placeholder="e.g. 10.0.0.5 or SYN">
+</aside>
+
+<main>
+  <h1>Network Security Analyzer</h1>
+  <p class="caption" id="status">Loading...</p>
+  <div id="error" hidden></div>
+
+  <div id="content" hidden>
+    <section class="cards">
+      <div class="card"><div class="label">Bandwidth (Mbps)</div><div class="value" id="mbps"></div></div>
+      <div class="card"><div class="label">Packets/s</div><div class="value" id="pps"></div></div>
+      <div class="card"><div class="label">Requests/s</div><div class="value" id="rps"></div></div>
+      <div class="card"><div class="label">SYN/s</div><div class="value" id="syn"></div></div>
+      <div class="card"><div class="label">Handshakes/s</div><div class="value" id="hs"></div></div>
+      <div class="card"><div class="label">Alerts</div><div class="value" id="alertCount"></div><span class="sub" id="critical" hidden></span></div>
+    </section>
+
+    <section class="grid">
+      <div><h2>Bandwidth (Mbps)</h2><canvas id="chartBandwidth"></canvas></div>
+      <div><h2>Packets and requests per second</h2><canvas id="chartPackets"></canvas></div>
+      <div><h2>SYN and TLS handshakes per second</h2><canvas id="chartSyn"></canvas></div>
+      <div>
+        <h2>Top source IPs (packets/s)</h2>
+        <div class="table-wrap"><table><thead><tr><th>Source IP</th><th>Packets/s</th></tr></thead><tbody id="top"></tbody></table></div>
+      </div>
+    </section>
+
+    <h2 id="alertsTitle">Alerts</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Severity</th><th>Rule</th><th>Name</th><th>Source</th><th>Scope</th><th>Measured</th><th>Threshold</th><th>Site (SNI)</th><th>Status</th></tr></thead>
+        <tbody id="alerts"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let timer = null;
+let lastData = null;
+
+async function getJSON(url) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+// Values from the logs (IPs, site names) come from network traffic, so they are only ever set as text.
+function cell(text, className) {
+  const td = document.createElement("td");
+  td.textContent = text;
+  if (className) td.className = className;
+  return td;
+}
+
+function fillRows(tbody, rows, columns, emptyText) {
+  tbody.replaceChildren();
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = cell(emptyText, "empty");
+    td.colSpan = columns;
+    tr.append(td);
+    tbody.append(tr);
+    return;
+  }
+  for (const cells of rows) {
+    const tr = document.createElement("tr");
+    tr.append(...cells);
+    tbody.append(tr);
+  }
+}
+
+const number = (v, digits) => Number(v).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+function niceStep(raw) {
+  const power = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / power;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * power;
+}
+
+function timeLabel(seconds) {
+  return new Date(seconds * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
+function drawChart(canvas, times, series) {
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const styles = getComputedStyle(document.documentElement);
+  const muted = styles.getPropertyValue("--muted"), grid = styles.getPropertyValue("--line");
+  const pad = { left: 52, right: 14, top: 8, bottom: 48 };
+  const pw = w - pad.left - pad.right, ph = h - pad.top - pad.bottom;
+  ctx.font = "11px system-ui, sans-serif";
+  ctx.fillStyle = muted;
+  if (!times.length) {
+    ctx.fillText("No traffic recorded yet.", pad.left, pad.top + ph / 2);
+    return;
+  }
+
+  const max = Math.max(...series.flatMap((s) => s.values), 0);
+  const step = max > 0 ? niceStep(max / 4) : 1;
+  const top = Math.max(step, Math.ceil(max / step) * step);
+  const y = (v) => pad.top + ph - (v / top) * ph;
+  const t0 = times[0], span = Math.max(1, times[times.length - 1] - t0);
+  const x = (t) => pad.left + ((t - t0) / span) * pw;
+
+  ctx.strokeStyle = grid;
+  ctx.lineWidth = 1;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let v = 0; v <= top + step / 2; v += step) {
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y(v));
+    ctx.lineTo(w - pad.right, y(v));
+    ctx.stroke();
+    ctx.fillText(Number(v.toPrecision(3)).toLocaleString(), pad.left - 8, y(v));
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  const ticks = Math.max(1, Math.min(4, Math.floor(pw / 90)));  // about 90 px per time label, so they never overlap
+  for (let i = 0; i <= ticks; i++) {
+    const t = t0 + (span * i) / ticks;
+    ctx.fillText(timeLabel(t), Math.min(Math.max(x(t), pad.left + 24), w - pad.right - 24), pad.top + ph + 6);
+  }
+
+  for (const s of series) {
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    times.forEach((t, i) => (i ? ctx.lineTo(x(t), y(s.values[i])) : ctx.moveTo(x(t), y(s.values[i]))));
+    ctx.stroke();
+  }
+
+  let lx = pad.left;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  for (const s of series) {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(lx, h - 12, 14, 3);
+    ctx.fillStyle = muted;
+    ctx.fillText(s.name, lx + 20, h - 11);
+    lx += 20 + ctx.measureText(s.name).width + 24;
+  }
+}
+
+function drawCharts() {
+  if (!lastData) return;
+  const s = lastData.series, styles = getComputedStyle(document.documentElement);
+  const c1 = styles.getPropertyValue("--c1"), c2 = styles.getPropertyValue("--c2");
+  drawChart($("chartBandwidth"), s.time, [{ name: "Mbps", values: s.mbps, color: c1 }]);
+  drawChart($("chartPackets"), s.time, [{ name: "Packets/s", values: s.pps, color: c1 }, { name: "Requests/s", values: s.rps, color: c2 }]);
+  drawChart($("chartSyn"), s.time, [{ name: "Handshakes/s", values: s.tls_handshake_rate, color: c1 }, { name: "SYN/s", values: s.syn_rate, color: c2 }]);
+}
+
+function render(d) {
+  lastData = d;
+  const status = $("status");
+  status.replaceChildren(`${d.session}  ·  `);
+  const badge = document.createElement("span");
+  badge.className = d.live ? "badge live" : "badge";
+  badge.textContent = d.live ? "LIVE" : "not running";
+  status.append(badge, `  ·  ${d.seconds} seconds of data`);
+
+  $("mbps").textContent = number(d.rates.mbps, 2);
+  $("pps").textContent = number(d.rates.pps, 0);
+  $("rps").textContent = number(d.rates.rps, 1);
+  $("syn").textContent = number(d.rates.syn_rate, 1);
+  $("hs").textContent = number(d.rates.tls_handshake_rate, 1);
+  $("alertCount").textContent = d.alerts_total;
+  $("critical").hidden = !d.alerts_critical;
+  $("critical").textContent = `${d.alerts_critical} critical`;
+
+  drawCharts();
+
+  fillRows($("top"), d.top_sources.map(([ip, pps]) => [cell(ip), cell(number(pps, 1), "num")]), 2, "No traffic yet.");
+
+  $("alertsTitle").textContent = `Alerts (${d.alerts.length} of ${d.alerts_total})`;
+  fillRows($("alerts"), d.alerts.map((a) => [
+    cell(a.time),
+    cell(a.severity.toUpperCase(), a.severity === "critical" ? "sev-critical" : ""),
+    cell(a.triggered_signature_id),
+    cell(a.triggered_signature_name),
+    cell(a.src_ip),
+    cell(a.scope),
+    cell(`${a.monitored_attribute} ${number(a.observed_value, 1)}/s`),
+    cell(`${number(a.threshold, 0)}/s`),
+    cell(a.sni || ""),
+    cell(a.status),
+  ]), 10, d.alerts_total ? "No alerts match." : "No alerts in this session.");
+
+  $("content").hidden = false;
+}
+
+function query() {
+  const p = new URLSearchParams({ name: $("session").value, minutes: $("minutes").value, q: $("search").value.trim() });
+  const severities = [...document.querySelectorAll("#severities input:checked")].map((i) => i.value);
+  const rules = [...$("rules").selectedOptions].map((o) => o.value);
+  if (severities.length) p.set("severity", severities.join(","));
+  if (rules.length) p.set("rule", rules.join(","));
+  return p;
+}
+
+async function updateSessions() {
+  const { sessions } = await getJSON("/api/sessions");
+  const select = $("session"), current = select.value;
+  const previous = [...select.options].map((o) => o.value);
+  if (sessions.join() !== previous.join()) {
+    select.replaceChildren(...sessions.map((name) => new Option(name, name)));
+    // Follow a newly started session, unless an older session was picked on purpose.
+    const followNewest = !current || current === previous[0];
+    select.value = followNewest || !sessions.includes(current) ? sessions[0] || "" : current;
+  }
+  return sessions;
+}
+
+async function refresh() {
+  try {
+    const sessions = await updateSessions();
+    if (!sessions.length) {
+      $("status").textContent = "No sessions in the logs folder yet. Start one with: python -m analyzer -i <interface>";
+      $("content").hidden = true;
+    } else {
+      render(await getJSON(`/api/session?${query()}`));
+    }
+    $("error").hidden = true;
+  } catch (err) {
+    $("error").textContent = `Cannot reach the dashboard server (${err.message}). Is "python -m analyzer.dashboard" still running?`;
+    $("error").hidden = false;
+  }
+}
+
+function schedule() {
+  clearInterval(timer);
+  if ($("refresh").checked) timer = setInterval(refresh, 2000);
+}
+
+async function init() {
+  try {
+    const { rules } = await getJSON("/api/rules");
+    $("rules").replaceChildren(...rules.map((id) => new Option(id, id)));
+  } catch (err) { /* refresh() reports a server that cannot be reached */ }
+
+  let typing = null;
+  $("search").addEventListener("input", () => { clearTimeout(typing); typing = setTimeout(refresh, 300); });
+  $("minutes").addEventListener("input", () => { $("minutesLabel").textContent = $("minutes").value; });
+  for (const id of ["session", "minutes", "rules"]) $(id).addEventListener("change", refresh);
+  $("severities").addEventListener("change", refresh);
+  $("refresh").addEventListener("change", schedule);
+  window.addEventListener("resize", drawCharts);
+
+  await refresh();
+  schedule();
+}
+
+init();
+</script>
+</body>
+</html>

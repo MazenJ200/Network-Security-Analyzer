@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph PRESENT["Presentation Layer"]
-        H["Streamlit Dashboard<br/>Bps / Pps / Rps trends<br/>Top source IPs<br/>Live alert feed<br/>Log search & filtering"]
+        H["Web Dashboard<br/>Bps / Pps / Rps trends<br/>Top source IPs<br/>Live alert feed<br/>Log search & filtering"]
     end
 
     A --> B
@@ -62,5 +62,5 @@ On a match, two outputs are produced in parallel:
 - **Real-time Alert** — timestamp, source IP, triggered signature, attack category, severity, and traffic statistics, displayed immediately on the terminal.
 - **Structured JSON Log** — all alert events plus corresponding metadata, written to a persistent log file for audit and historical investigation.
 
-### Presentation Layer (Streamlit Dashboard)
-The dashboard reads from the live metric aggregator and the JSON log store. It displays time-series charts for Bps/Pps/Rps, a ranked list of top source IPs, a live alert feed with filtering, and historical log search. It is served locally and accessed via a browser.
+### Presentation Layer (Web Dashboard)
+The dashboard is a small web server built on Python's standard library (`http.server`) and a single HTML page with its own JavaScript; no web framework is installed. It reads the session's metrics file (written each second from the live metric aggregator) and the JSON log store. It displays time-series charts for Bps/Pps/Rps, a ranked list of top source IPs, a live alert feed with filtering, and historical log search. It is served locally and accessed via a browser.

@@ -24,7 +24,7 @@ Detection is **deterministic and explainable**: every alert maps directly to a s
   - Application-layer attacks (requests-per-second tracking)
 - **JSON-defined signatures** that can be edited or extended without changing the code
 - **Real-time alerts** to the terminal, with structured **JSON logging** for historical investigation
-- **Interactive Streamlit dashboard** showing live Bps/Pps/Rps trends, top source IPs, and triggered alerts, with filtering and search
+- **Interactive web dashboard** (Python standard library, no framework) showing live Bps/Pps/Rps trends, top source IPs, and triggered alerts, with filtering and search
 
 ## Architecture Overview
 
@@ -48,7 +48,7 @@ flowchart TD
     end
 
     subgraph PRESENT["Presentation Layer"]
-        H["Streamlit Dashboard<br/>Trends, top IPs, alert feed,<br/>log search & filtering"]
+        H["Web Dashboard<br/>Trends, top IPs, alert feed,<br/>log search & filtering"]
     end
 
     A --> B
@@ -72,7 +72,7 @@ See [docs/architecture.md](docs/architecture.md) for the full description.
 | Processing | **Python** | Core engine: parsing, metric aggregation, rule evaluation |
 | Data storage | **JSON** | Human-readable signature rules and structured logs |
 | Data processing | **Pandas + NumPy** | Traffic metrics and analysis |
-| Dashboard | **Streamlit** | Live charts and alert visualization |
+| Dashboard | **Python `http.server` + HTML/JavaScript** | Live charts and alert visualization, no extra packages |
 | Environment | **Local machine** | Controlled local deployment |
 
 ## Documentation
@@ -110,10 +110,10 @@ Each run creates a session in `logs/`: `session_<date>_<number>.jsonl` (alerts) 
 Open the dashboard in a second terminal (it reads `logs/` and refreshes every 2 seconds):
 
 ```bash
-streamlit run dashboard.py
+python -m analyzer.dashboard
 ```
 
-It opens at http://localhost:8501 and shows live bandwidth, packet, request, SYN and handshake rates, the top source IPs, and the alert feed with severity, rule and text filters. Pick an earlier session from the sidebar to review it.
+Then open http://localhost:8501 in a browser. It only listens on this computer (127.0.0.1). The page shows live bandwidth, packet, request, SYN and handshake rates, the top source IPs, and the alert feed with severity, rule and text filters. Pick an earlier session from the sidebar to review it.
 
 ## Checking each part
 
@@ -154,7 +154,7 @@ Numbers match the report sections.
 | 6.3 | Traffic metrics (`analyzer/metrics.py`) | Done |
 | 6.4 | Detection engine, alerts and JSON logs (`analyzer/detection.py`, `analyzer/alerts.py`) | Done |
 | 6.5 | Monitoring session and main program (`analyzer/session.py`, `python -m analyzer`) | Done |
-| 6.6 | Streamlit dashboard (`dashboard.py`, `analyzer/dashboard_data.py`) | Done |
+| 6.6 | Web dashboard (`analyzer/dashboard.py`, `analyzer/static/index.html`, `analyzer/dashboard_data.py`) | Done |
 | 7 | Attack simulation and testing | Next |
 
 ## Team
