@@ -1,0 +1,180 @@
+{
+ "run_at": "2026-11-15T13:42:41",
+ "results": [
+  {
+   "id": "S1",
+   "name": "Normal browsing (no attack)",
+   "seconds": 40.8,
+   "traffic": {
+    "requests": 40
+   },
+   "expected": [],
+   "forbidden": [
+    "VOL-001",
+    "VOL-002",
+    "PRO-001",
+    "PRO-002",
+    "PRO-003",
+    "APP-001",
+    "APP-002"
+   ],
+   "fired": [],
+   "first_alert_sec": {},
+   "alerts": 0,
+   "packets": 611,
+   "session": "session_2026-11-15_002",
+   "result": "PASS",
+   "analyzer_output": []
+  },
+  {
+   "id": "S2",
+   "name": "TLS handshake flood",
+   "seconds": 10.0,
+   "traffic": {
+    "connections": 724
+   },
+   "expected": [
+    "APP-001"
+   ],
+   "forbidden": [
+    "APP-002",
+    "PRO-002",
+    "VOL-001",
+    "VOL-002"
+   ],
+   "fired": [
+    "APP-001"
+   ],
+   "first_alert_sec": {
+    "APP-001": 3.85
+   },
+   "alerts": 1,
+   "packets": 16522,
+   "session": "session_2026-11-15_003",
+   "result": "PASS",
+   "analyzer_output": []
+  },
+  {
+   "id": "S3",
+   "name": "HTTPS request flood on one connection",
+   "seconds": 10.0,
+   "traffic": {
+    "requests": 40418
+   },
+   "expected": [
+    "APP-002"
+   ],
+   "forbidden": [
+    "APP-001",
+    "PRO-001",
+    "PRO-002"
+   ],
+   "fired": [
+    "APP-002",
+    "PRO-003"
+   ],
+   "first_alert_sec": {
+    "APP-002": 0.3,
+    "PRO-003": 0.48
+   },
+   "alerts": 2,
+   "packets": 242585,
+   "session": "session_2026-11-15_004",
+   "result": "PASS",
+   "analyzer_output": []
+  },
+  {
+   "id": "S4",
+   "name": "TCP connection (SYN) flood, one source",
+   "seconds": 10.0,
+   "traffic": {
+    "connections": 20286,
+    "sources": 1
+   },
+   "expected": [
+    "PRO-001"
+   ],
+   "forbidden": [
+    "APP-001",
+    "APP-002"
+   ],
+   "fired": [
+    "PRO-001",
+    "PRO-002",
+    "PRO-003"
+   ],
+   "first_alert_sec": {
+    "PRO-001": 0.17,
+    "PRO-002": 0.5,
+    "PRO-003": 0.55
+   },
+   "alerts": 3,
+   "packets": 81150,
+   "session": "session_2026-11-15_005",
+   "result": "PASS",
+   "analyzer_output": []
+  },
+  {
+   "id": "S5",
+   "name": "Distributed connection flood, 100 sources",
+   "seconds": 10.0,
+   "traffic": {
+    "connections": 22550,
+    "sources": 100
+   },
+   "expected": [
+    "PRO-002"
+   ],
+   "forbidden": [
+    "PRO-001",
+    "APP-001",
+    "APP-002"
+   ],
+   "fired": [
+    "PRO-002"
+   ],
+   "first_alert_sec": {
+    "PRO-002": 0.5
+   },
+   "alerts": 1,
+   "packets": 90202,
+   "session": "session_2026-11-15_006",
+   "result": "PASS",
+   "analyzer_output": []
+  },
+  {
+   "id": "S6",
+   "name": "Upload (bandwidth) flood",
+   "seconds": 10.0,
+   "traffic": {
+    "megabytes_sent": 1920.0
+   },
+   "expected": [
+    "VOL-001",
+    "VOL-002"
+   ],
+   "forbidden": [
+    "APP-001",
+    "PRO-001",
+    "PRO-002"
+   ],
+   "fired": [
+    "APP-002",
+    "PRO-003",
+    "VOL-001",
+    "VOL-002"
+   ],
+   "first_alert_sec": {
+    "VOL-002": 0.06,
+    "APP-002": 0.07,
+    "VOL-001": 0.14,
+    "PRO-003": 0.38
+   },
+   "alerts": 4,
+   "packets": 242013,
+   "session": "session_2026-11-15_007",
+   "result": "PASS",
+   "analyzer_output": []
+  }
+ ]
+}

@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 logs/*.json
 logs/*.jsonl
+tools/certs/
+tools/lab_logs/

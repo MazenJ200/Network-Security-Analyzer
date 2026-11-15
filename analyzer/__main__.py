@@ -9,6 +9,8 @@ from analyzer.signatures import SignatureError
 
 
 def main():
+    # Without this, alerts sent to a pipe or file sit in a buffer until the program ends.
+    sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser(prog="python -m analyzer", description="Rule-based DDoS detection for HTTPS traffic.")
     ap.add_argument("-i", "--interface", help="interface name or number from --list-interfaces")
     ap.add_argument("-r", "--read", help="analyze a saved .pcap/.pcapng file instead of live traffic")

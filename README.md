@@ -83,6 +83,7 @@ See [docs/architecture.md](docs/architecture.md) for the full description.
 | [docs/data-formats.md](docs/data-formats.md) | JSON signature and log file schemas with examples |
 | [docs/design.md](docs/design.md) | UML design diagrams (use case, class, sequence, activity, deployment, state) |
 | [docs/implementation-notes.md](docs/implementation-notes.md) | Decisions made while building, and known limits |
+| [docs/test-results.md](docs/test-results.md) | Lab scenarios, false-alarm check and throughput results |
 
 ## Setup
 
@@ -141,9 +142,21 @@ python -m analyzer.metrics -r tests/data/sample_https.pcapng
 
 Live capture may need an administrator terminal, depending on how Npcap was installed.
 
+## Test lab
+
+`tools/` holds a small lab that attacks only this computer: a local HTTPS server on 127.0.0.1:8443 (`lab_server.py`, self-signed certificate made on first run), traffic generators (`traffic.py`) and a runner (`run_lab.py`) that starts a fresh analyzer session per scenario and checks which rules fired:
+
+```bash
+python tools/run_lab.py            # Windows loopback adapter
+python tools/run_lab.py -i lo      # Linux loopback
+python tools/bench.py              # packets per second the detection code can handle
+```
+
+Scenarios: normal browsing, TLS handshake flood, HTTPS request flood, TCP connection (SYN) flood, a connection flood spread over 100 loopback addresses, and an upload (bandwidth) flood. Results are in [docs/test-results.md](docs/test-results.md).
+
 ## Project Status
 
-Implementation in progress.
+Implementation and testing done.
 
 Numbers match the report sections.
 
@@ -155,7 +168,7 @@ Numbers match the report sections.
 | 6.4 | Detection engine, alerts and JSON logs (`analyzer/detection.py`, `analyzer/alerts.py`) | Done |
 | 6.5 | Monitoring session and main program (`analyzer/session.py`, `python -m analyzer`) | Done |
 | 6.6 | Web dashboard (`analyzer/dashboard.py`, `analyzer/static/index.html`, `analyzer/dashboard_data.py`) | Done |
-| 7 | Attack simulation and testing | Next |
+| 7 | Test lab and results (`tools/`, [docs/test-results.md](docs/test-results.md)) | Done |
 
 ## Team
 
