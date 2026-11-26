@@ -1,12 +1,12 @@
 {
- "run_at": "2026-11-15T13:42:41",
+ "run_at": "2026-11-15T13:53:43",
  "results": [
   {
    "id": "S1",
    "name": "Normal browsing (no attack)",
-   "seconds": 40.8,
+   "seconds": 40.1,
    "traffic": {
-    "requests": 40
+    "requests": 44
    },
    "expected": [],
    "forbidden": [
@@ -21,8 +21,10 @@
    "fired": [],
    "first_alert_sec": {},
    "alerts": 0,
-   "packets": 611,
-   "session": "session_2026-11-15_002",
+   "packets": 583,
+   "capture_sec": 47,
+   "session_sec": 48,
+   "session": "session_2026-11-15_008",
    "result": "PASS",
    "analyzer_output": []
   },
@@ -31,7 +33,7 @@
    "name": "TLS handshake flood",
    "seconds": 10.0,
    "traffic": {
-    "connections": 724
+    "connections": 711
    },
    "expected": [
     "APP-001"
@@ -46,11 +48,13 @@
     "APP-001"
    ],
    "first_alert_sec": {
-    "APP-001": 3.85
+    "APP-001": 3.92
    },
    "alerts": 1,
-   "packets": 16522,
-   "session": "session_2026-11-15_003",
+   "packets": 16245,
+   "capture_sec": 17,
+   "session_sec": 18,
+   "session": "session_2026-11-15_009",
    "result": "PASS",
    "analyzer_output": []
   },
@@ -59,7 +63,7 @@
    "name": "HTTPS request flood on one connection",
    "seconds": 10.0,
    "traffic": {
-    "requests": 40418
+    "requests": 26105
    },
    "expected": [
     "APP-002"
@@ -74,12 +78,14 @@
     "PRO-003"
    ],
    "first_alert_sec": {
-    "APP-002": 0.3,
-    "PRO-003": 0.48
+    "APP-002": 0.46,
+    "PRO-003": 0.73
    },
    "alerts": 2,
-   "packets": 242585,
-   "session": "session_2026-11-15_004",
+   "packets": 156651,
+   "capture_sec": 17,
+   "session_sec": 18,
+   "session": "session_2026-11-15_010",
    "result": "PASS",
    "analyzer_output": []
   },
@@ -88,7 +94,7 @@
    "name": "TCP connection (SYN) flood, one source",
    "seconds": 10.0,
    "traffic": {
-    "connections": 20286,
+    "connections": 19516,
     "sources": 1
    },
    "expected": [
@@ -104,13 +110,15 @@
     "PRO-003"
    ],
    "first_alert_sec": {
-    "PRO-001": 0.17,
-    "PRO-002": 0.5,
-    "PRO-003": 0.55
+    "PRO-001": 0.24,
+    "PRO-002": 0.74,
+    "PRO-003": 0.82
    },
    "alerts": 3,
-   "packets": 81150,
-   "session": "session_2026-11-15_005",
+   "packets": 78066,
+   "capture_sec": 17,
+   "session_sec": 18,
+   "session": "session_2026-11-15_011",
    "result": "PASS",
    "analyzer_output": []
   },
@@ -119,7 +127,7 @@
    "name": "Distributed connection flood, 100 sources",
    "seconds": 10.0,
    "traffic": {
-    "connections": 22550,
+    "connections": 18787,
     "sources": 100
    },
    "expected": [
@@ -134,11 +142,13 @@
     "PRO-002"
    ],
    "first_alert_sec": {
-    "PRO-002": 0.5
+    "PRO-002": 0.75
    },
    "alerts": 1,
-   "packets": 90202,
-   "session": "session_2026-11-15_006",
+   "packets": 75150,
+   "capture_sec": 17,
+   "session_sec": 18,
+   "session": "session_2026-11-15_012",
    "result": "PASS",
    "analyzer_output": []
   },
@@ -147,7 +157,7 @@
    "name": "Upload (bandwidth) flood",
    "seconds": 10.0,
    "traffic": {
-    "megabytes_sent": 1920.0
+    "megabytes_sent": 1898.0
    },
    "expected": [
     "VOL-001",
@@ -165,14 +175,16 @@
     "VOL-002"
    ],
    "first_alert_sec": {
-    "VOL-002": 0.06,
-    "APP-002": 0.07,
-    "VOL-001": 0.14,
-    "PRO-003": 0.38
+    "VOL-002": 0.08,
+    "APP-002": 0.1,
+    "VOL-001": 0.19,
+    "PRO-003": 0.44
    },
    "alerts": 4,
-   "packets": 242013,
-   "session": "session_2026-11-15_007",
+   "packets": 239236,
+   "capture_sec": 17,
+   "session_sec": 18,
+   "session": "session_2026-11-15_013",
    "result": "PASS",
    "analyzer_output": []
   }

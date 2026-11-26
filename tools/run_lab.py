@@ -7,6 +7,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -68,11 +69,14 @@ def run_scenario(sid, name, generator, seconds, must, must_not, interface, logs,
     fired = sorted(first)
     summary = next((l for l in output if "packets," in l), "")
     packets = int(summary.split(":")[1].split("packets")[0].strip().split()[-1]) if summary else 0
+    took = re.search(r"stopped after (\d+)s", summary)
     passed = set(must) <= set(fired) and not set(fired) & set(must_not)
     return {
         "id": sid, "name": name, "seconds": round(end - start, 1), "traffic": stats,
         "expected": must, "forbidden": must_not, "fired": fired, "first_alert_sec": first,
-        "alerts": len(alerts), "packets": packets, "session": alert_log.stem, "result": "PASS" if passed else "FAIL",
+        "alerts": len(alerts), "packets": packets,
+        # Tshark stops at the planned time; a longer session means Python was still catching up.
+        "capture_sec": WARMUP_SEC + seconds + TAIL_SEC, "session_sec": int(took.group(1)) if took else None, "session": alert_log.stem, "result": "PASS" if passed else "FAIL",
         # Raw output names local folders, so it is kept only to explain a failure.
         "analyzer_output": [] if passed else output,
     }
